@@ -731,7 +731,7 @@ export default () => {
   const startTime = Date.now();
 	useFrame(() => {
 		const now = Date.now();
-    material.uniforms.iTime.value = (now - startTime)/1000000;
+    material.uniforms.iTime.value = (now - startTime)/500000;
     material.uniforms.iTime.needsUpdate = true;
 		
 		renderer.getSize(material.uniforms.iResolution.value);
