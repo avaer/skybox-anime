@@ -214,34 +214,6 @@ export default () => {
 		// Various 3D utilities functions
 		// ----------------------------------------------------------------------------
 
-    /* ray_t get_primary_ray(
-			_in(vec3) cam_local_point,
-			_inout(vec3) cam_origin,
-			_inout(vec3) cam_look_at
-		){
-			vec3 fwd = normalize(cam_look_at - cam_origin);
-			vec3 up = vec3(0, 1, 0);
-			vec3 right = cross(up, fwd);
-			up = cross(fwd, right);
-
-			ray_t r = _begin(ray_t)
-				cam_origin,
-				normalize(fwd + up * cam_local_point.y + right * cam_local_point.x)
-			_end;
-			return r;
-		} */
-
-		ray_t get_primary_ray(
-			_in(vec3) cam_local_point,
-			_inout(vec3) cam_origin
-		){
-			ray_t r = _begin(ray_t)
-				cam_origin,
-				normalize(fwd * cam_local_point.z + up * cam_local_point.y + right * cam_local_point.x)
-			_end;
-			return r;
-		}
-
 		_constant(mat3) mat3_ident = mat3(1, 0, 0, 0, 1, 0, 0, 0, 1);
 
 
@@ -716,18 +688,6 @@ export default () => {
 			return vec4(cloud.C, cloud.alpha * smoothstep(.0, .2, cutoff));
 		}
 
-		void setup_camera(
-			_inout(vec3) eye,
-			_inout(vec3) look_at
-		){
-			eye = vec3(0, 1., 0);
-			look_at = vec3(0, 1.6, -1);
-		}
-
-		void setup_scene()
-		{
-		}
-
 		vec3 render(
 			_in(ray_t) eye_ray,
 			_in(vec3) point_cam
@@ -748,16 +708,6 @@ export default () => {
 		// ----------------------------------------------------------------------------
 		
 		void main() {
-			// assuming screen width is larger than height 
-			vec2 aspect_ratio = vec2(u_res.x / u_res.y, 1);
-
-			vec3 color = vec3(0, 0, 0);
-
-			vec3 eye = cameraPos;
-			// setup_camera(eye, look_at);
-
-			setup_scene();
-
 			vec4 ndcPos;
 			ndcPos.xy = ((2.0 * gl_FragCoord.xy) - (2.0 * 0.)) / (iResolution) - 1.;
 			ndcPos.z = (2.0 * gl_FragCoord.z - gl_DepthRange.near - gl_DepthRange.far) /
@@ -768,10 +718,12 @@ export default () => {
 			vec4 eyePos = projectionMatrixInverse * clipPos;
 			vec3 point_cam = eyePos.xyz / eyePos.w;
 
-			ray_t ray = get_primary_ray(point_cam, eye);
+      ray_t ray = _begin(ray_t)
+				cameraPos,
+				normalize(fwd * point_cam.z + up * point_cam.y + right * point_cam.x)
+			_end;
 
-			color += render(ray, point_cam);
-
+      vec3 color = render(ray, point_cam);
 			gl_FragColor = vec4(linear_to_srgb(color), 1);
 		}`,
     // transparent: true,
