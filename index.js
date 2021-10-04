@@ -431,7 +431,7 @@ export default () => {
 			_in(float) coeff_absorb
 		){
 			volume_sampler_t v = _begin(volume_sampler_t)
-				origin, origin, 0.,
+				origin, origin, 0., // origin, position, height,
 				coeff_absorb, 1.,
 				vec3(0., 0., 0.), 0.
 			_end;
@@ -439,15 +439,11 @@ export default () => {
 		}
 
 		float illuminate_volume(
-			_inout(volume_sampler_t) vol,
-			_in(vec3) V,
-			_in(vec3) L
+			_in(volume_sampler_t) vol
 		);
 
 		void integrate_volume(
 			_inout(volume_sampler_t) vol,
-			_in(vec3) V,
-			_in(vec3) L,
 			_in(float) density,
 			_in(float) dt
 		){
@@ -456,7 +452,7 @@ export default () => {
 			// Update accumulated transmittance
 			vol.T *= T_i;
 			// integrate output radiance (here essentially color)
-			vol.C += vol.T * illuminate_volume(vol, V, L) * density * dt;
+			vol.C += vol.T * illuminate_volume(vol) * density * dt;
 			// accumulate opacity
 			vol.alpha += (1. - T_i) * (1. - vol.alpha);
 		}
@@ -464,8 +460,8 @@ export default () => {
 
 		#define cld_march_steps (3)
 		#define cld_coverage (.4)
-		#define cld_thick (50.)
-		#define cld_absorb_coeff (.2)
+		#define cld_thick (30.)
+		#define cld_absorb_coeff (.25)
 		#define cld_wind_dir vec3(0, 0, -u_time)
 		#define cld_sun_dir normalize(vec3(0, 0/*abs(sin(u_time * .3))*/, -1))
 		// _mutable(float) coverage_map;
@@ -630,8 +626,8 @@ export default () => {
 		}
 
 		float density_func(
-			_in(vec3) pos,
-			_in(float) h
+			_in(vec3) pos/*,
+			_in(float) h*/
 		){
 			vec3 p = pos * .001 + cld_wind_dir;
 			float dens = fbm_clouds(p * 2.032, 2.6434, .5, .5);
@@ -644,13 +640,12 @@ export default () => {
 		}
 
 		float illuminate_volume(
-			_inout(volume_sampler_t) cloud,
-			_in(vec3) V,
-			_in(vec3) L
+			_in(volume_sampler_t) cloud
 		){
 			return exp(cloud.height) / 1.95;
 		}
 
+    const float cloudHeight = 100.;
 		vec4 render_clouds(
 			_in(ray_t) eye
 		){
@@ -663,27 +658,27 @@ export default () => {
 			float cutoff = dot(eye.direction, vec3(0, 1, 0));
 
 			volume_sampler_t cloud = begin_volume(
-				vec3(eye.origin.x, 0., eye.origin.z) + projection * 100.,
-				// eye.origin + projection * 100.,
+				vec3(eye.origin.x, 0., eye.origin.z) - projection * (eye.origin.y - cloudHeight),
 				cld_absorb_coeff);
 
-			//coverage_map = gnoise(projection);
-			//return vec4(coverage_map, coverage_map, coverage_map, 1);
+      if (cloud.pos.y >= 0.) {
+        for (int i = 0; i < steps; i++) {
+          cloud.height = (cloud.pos.y - cloud.origin.y)
+            / cld_thick;
+          // if (cloud.height >= 0.) {
+            float dens = density_func(cloud.pos + vec3(0., eye.origin.y, 0.)/*, cloud.height*/);
 
-			for (int i = 0; i < steps; i++) {
-				cloud.height = (cloud.pos.y - cloud.origin.y)
-					/ cld_thick;
-				float dens = density_func(cloud.pos, cloud.height);
+            integrate_volume(
+              cloud,
+              dens, march_step
+            );
 
-				integrate_volume(
-					cloud,
-					eye.direction, cld_sun_dir,
-					dens, march_step);
+            cloud.pos += iter;
 
-				cloud.pos += iter;
-
-				if (cloud.alpha > .999) break;
-			}
+            if (cloud.alpha > .999) break;
+          // }
+        }
+      }
 
 			return vec4(cloud.C, cloud.alpha * smoothstep(.0, .2, cutoff));
 		}
@@ -693,7 +688,7 @@ export default () => {
 			_in(vec3) point_cam
 		){
 			vec3 sky = render_sky_color(eye_ray.direction);
-			if (dot(eye_ray.direction, vec3(0, 1, 0)) < 0.05) return sky;
+			// if (dot(eye_ray.direction, vec3(0, 1, 0)) < 0.05) return sky;
 
 			vec4 cld = render_clouds(eye_ray);
 			vec3 col = mix(sky, cld.rgb, cld.a);
