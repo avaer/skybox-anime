@@ -751,5 +751,8 @@ export default () => {
 		material.uniforms.projectionMatrixInverse.needsUpdate = true;
 	});
   app.add(o);
+  
+  app.setComponent('renderPriority', 'low');
+  
   return app;
 };
