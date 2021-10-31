@@ -704,7 +704,8 @@ export default () => {
 			_end;
 
       vec3 color = render(ray, point_cam);
-			gl_FragColor = vec4(linear_to_srgb(color), 1);
+      // gl_FragColor = vec4(linear_to_srgb(color), 1);
+			gl_FragColor = vec4(color, 1);
 		}`,
     // transparent: true,
     // side: THREE.DoubleSide,
