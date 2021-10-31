@@ -13,16 +13,6 @@ export default () => {
     );
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      /* uBoundingBox: {
-        type: 'vec4',
-        value: new THREE.Vector4(
-          boundingBox.min.x,
-          boundingBox.min.y,
-          boundingBox.max.x - boundingBox.min.x,
-          boundingBox.max.y - boundingBox.min.y
-        ),
-        needsUpdate: true,
-      }, */
       iTime: {
         // type: 'f',
         value: Date.now(),
