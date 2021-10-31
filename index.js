@@ -14,27 +14,22 @@ export default () => {
   const material = new THREE.ShaderMaterial({
     uniforms: {
       iTime: {
-        // type: 'f',
         value: Date.now(),
         needsUpdate: true,
       },
 			iResolution: {
-        // type: 'f',
         value: new THREE.Vector2(),
         needsUpdate: true,
       },
 			cameraPos: {
-        // type: 'f',
         value: new THREE.Vector3(),
         needsUpdate: true,
       },
 			cameraQuaternion: {
-        // type: 'f',
         value: new THREE.Vector4(),
         needsUpdate: true,
       },
 			projectionMatrixInverse: {
-			  // type: 'f',
         value: new THREE.Matrix4(),
         needsUpdate: true,
 			},
@@ -718,27 +713,52 @@ export default () => {
     // polygonOffsetUnits: 1,
   });
 	const o = new THREE.Mesh(sphereGeometry, material);
+  let uniformsNeedUpdate = o.material.uniformsNeedUpdate;
+  let forceUniformsNeedUpdate = false;
+  Object.defineProperty(o.material, 'uniformsNeedUpdate', {
+    get() {
+      return forceUniformsNeedUpdate || uniformsNeedUpdate;
+    },
+    set(v) {
+      uniformsNeedUpdate = v;
+    },
+  });
+  
+  const globalCamera = camera;
+  const globalRenderer = renderer;  
+  o.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
+    forceUniformsNeedUpdate = true;
+    
+    const renderTarget = renderer.getRenderTarget();
+    if (renderTarget) {
+      o.material.uniforms.iResolution.value.set(renderTarget.width, renderTarget.height);
+    } else {
+      globalRenderer.getSize(o.material.uniforms.iResolution.value)
+        .multiplyScalar(globalRenderer.getPixelRatio());
+      o.material.uniforms.iResolution.needsUpdate = true;
+    }
+    
+    o.material.uniforms.cameraPos.value.copy(camera.position);
+		o.material.uniforms.cameraPos.needsUpdate = true;
+		
+	  o.material.uniforms.cameraQuaternion.value.x = camera.quaternion.x;
+	  o.material.uniforms.cameraQuaternion.value.y = camera.quaternion.y;
+	  o.material.uniforms.cameraQuaternion.value.z = camera.quaternion.z;
+	  o.material.uniforms.cameraQuaternion.value.w = camera.quaternion.w;
+	  o.material.uniforms.cameraQuaternion.needsUpdate = true;
+		
+		o.material.uniforms.projectionMatrixInverse.value.copy(camera.projectionMatrixInverse);
+		o.material.uniforms.projectionMatrixInverse.needsUpdate = true;
+  };
+  o.onAfterRender = () => {
+    forceUniformsNeedUpdate = false;
+  };
+  
   const startTime = Date.now();
 	useFrame(() => {
 		const now = Date.now();
     material.uniforms.iTime.value = (now - startTime)/500000;
     material.uniforms.iTime.needsUpdate = true;
-		
-		renderer.getSize(material.uniforms.iResolution.value);
-		material.uniforms.iResolution.value.multiplyScalar(renderer.getPixelRatio());
-    material.uniforms.iResolution.needsUpdate = true;
-  
-	  material.uniforms.cameraPos.value.copy(camera.position);
-		material.uniforms.cameraPos.needsUpdate = true;
-		
-	  material.uniforms.cameraQuaternion.value.x = camera.quaternion.x;
-	  material.uniforms.cameraQuaternion.value.y = camera.quaternion.y;
-	  material.uniforms.cameraQuaternion.value.z = camera.quaternion.z;
-	  material.uniforms.cameraQuaternion.value.w = camera.quaternion.w;
-	  material.uniforms.cameraQuaternion.needsUpdate = true;
-		
-		material.uniforms.projectionMatrixInverse.value.copy(camera.projectionMatrixInverse);
-		material.uniforms.projectionMatrixInverse.needsUpdate = true;
 	});
   app.add(o);
   
