@@ -30,7 +30,10 @@ export default () => {
         iTime: {value: 0, needsUpdate: true,}
       },
       vertexShader: `
+        ${THREE.ShaderChunk.common}
         varying vec3 vWorldPosition;
+
+        ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
         
         void main() {
     
@@ -38,6 +41,8 @@ export default () => {
           vWorldPosition = worldPosition.xyz;
     
           gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+          ${THREE.ShaderChunk.logdepthbuf_vertex}
         }
       `,
     
@@ -46,6 +51,8 @@ export default () => {
       
         varying vec3 vWorldPosition;
         uniform vec3 cameraPos;
+
+        ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
         
         vec3 render_sky_color(
           vec3 eye_dir
@@ -65,6 +72,8 @@ export default () => {
 
           vec3 sky = render_sky_color(direction);
           gl_FragColor = vec4( sky, 1.0 );
+
+          ${THREE.ShaderChunk.logdepthbuf_fragment}
         }`,
         depthWrite: false,
     });
@@ -131,6 +140,7 @@ export default () => {
         },
       },
       vertexShader: `\
+        ${THREE.ShaderChunk.common}
         precision highp float;
         precision highp int;
         
@@ -139,11 +149,15 @@ export default () => {
         varying vec2 vUv;
         varying float vY;
 
+        ${THREE.ShaderChunk.logdepthbuf_pars_vertex}
+
         void main() {
           vec4 mvPosition = modelViewMatrix * vec4(position, 1.);
           gl_Position = projectionMatrix * mvPosition;
           vUv = uv;
           vY = y;
+
+          ${THREE.ShaderChunk.logdepthbuf_vertex}
         }
       `,
       fragmentShader: `
@@ -155,6 +169,8 @@ export default () => {
       
       varying vec2 vUv;
       varying float vY;
+
+      ${THREE.ShaderChunk.logdepthbuf_pars_fragment}
       
       //
       // Volumetric Clouds Experiment
@@ -768,6 +784,8 @@ export default () => {
         /* if (gl_FragColor.a < 0.0001) {
           discard;
         } */
+
+        ${THREE.ShaderChunk.logdepthbuf_fragment}
       }`,
       transparent: true,
       side: THREE.DoubleSide,
