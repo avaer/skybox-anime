@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import totum from 'totum';
-const {useApp, useFrame, useInternals} = totum;
+import metaversefile from 'metaversefile';
+const {useApp, useFrame, useInternals} = metaversefile;
 
 export default () => {
   const app = useApp();
