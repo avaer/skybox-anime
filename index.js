@@ -795,6 +795,7 @@ export default () => {
     });
     const o = new THREE.Mesh(geometry, material);
     o.position.y = 100;
+    o.updateMatrixWorld();
     let uniformsNeedUpdate = o.material.uniformsNeedUpdate;
     let forceUniformsNeedUpdate = false;
     Object.defineProperty(o.material, 'uniformsNeedUpdate', {
