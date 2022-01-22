@@ -87,7 +87,7 @@ export default () => {
       now += timeDiff;
     });
   }
-  {  
+  {
     const planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000)
       .applyMatrix4(
         new THREE.Matrix4()
