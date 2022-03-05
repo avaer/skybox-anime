@@ -1,17 +1,17 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import metaversefile from 'metaversefile';
-const {useApp, useFrame, useInternals} = metaversefile;
+const {useApp, useFrame, useLocalPlayer, useInternals} = metaversefile;
 
 export default () => {
   const app = useApp();
   const {renderer, camera} = useInternals();
 
   {
-    let _phi = 120;
+    /* let _phi = 120;
     let _theta = 13;
     let _dayPassSpeed = 0.01;
-    let sunObj = new THREE.DirectionalLight(0xFFFFFF, 2);
+    let sunObj = new THREE.DirectionalLight(0xFFFFFF, 2); */
 
     const sphereGeometry = new THREE.SphereBufferGeometry(300)
       .applyMatrix4(
@@ -807,7 +807,7 @@ export default () => {
       },
     });
     
-    const globalCamera = camera;
+    // const globalCamera = camera;
     const globalRenderer = renderer;  
     o.onBeforeRender = (renderer, scene, camera, geometry, material, group) => {
       forceUniformsNeedUpdate = true;
