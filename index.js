@@ -82,6 +82,10 @@ export default () => {
 
     let now = 0;
     useFrame(({timestamp, timeDiff}) => {
+      const localPlayer = useLocalPlayer();
+      o.position.copy(localPlayer.position);
+      o.updateMatrixWorld();
+
       material.uniforms.iTime.value = now/500000;
       material.uniforms.iTime.needsUpdate = true;
       now += timeDiff;
