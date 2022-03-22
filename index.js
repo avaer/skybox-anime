@@ -3,6 +3,12 @@ import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUti
 import metaversefile from 'metaversefile';
 const {useApp, useFrame, useLocalPlayer, useInternals} = metaversefile;
 
+const localVector = new THREE.Vector3();
+const localVector2 = new THREE.Vector3();
+const localQuaternion = new THREE.Quaternion();
+const localMatrix = new THREE.Matrix4();
+const localMatrix2 = new THREE.Matrix4();
+
 export default () => {
   const app = useApp();
   const {renderer, camera} = useInternals();
@@ -83,7 +89,9 @@ export default () => {
     let now = 0;
     useFrame(({timestamp, timeDiff}) => {
       const localPlayer = useLocalPlayer();
-      o.position.copy(localPlayer.position);
+      localMatrix.compose(localPlayer.position, localQuaternion.identity(), localVector2.set(1, 1, 1))
+        .premultiply(localMatrix2.copy(app.matrixWorld).invert())
+        .decompose(o.position, localQuaternion, localVector2);
       o.updateMatrixWorld();
 
       material.uniforms.iTime.value = now/500000;
